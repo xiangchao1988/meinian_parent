@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.atguigu.dao.AddressDao">
+
+    <select id="findAllMaps" resultType="Address">
+        select * from t_address
+    </select>
+
+
+
+
+    <!--返回的是page，为什么返回结果写的是Address，而且下面的参数addressName是从哪里来的？
+    而且这里的对象类型名称不区分大小写，都可以-->
+    <select id="findPage" parameterType="string" resultType="Address">
+        select * from   t_address
+        <where>
+            <if test="value!=null and value.length>0">
+                addressName concat("%",#{addressName},"%")
+            </if>
+        </where>
+    </select>
+
+    <insert id="add" parameterType="Address">
+        insert into t_address (addressName,lng,lat) values (#{addressName},#{lng},#lat})
+    </insert>
+
+    <delete id="deleteById" parameterType="integer">
+        delete from t_address where id=#{id}
+    </delete>
+
+</mapper>

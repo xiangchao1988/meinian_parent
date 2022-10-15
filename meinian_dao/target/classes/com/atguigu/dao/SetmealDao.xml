@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.atguigu.dao.SetmealDao">
+<insert id="add" parameterType="setmeal" useGeneratedKeys="true" keyProperty="id">
+     insert into t_setmeal (name,code,helpCode,sex,age,price,remark,attention,img)
+     values (#{name},#{code},#{helpCode},#{sex},#{age},#{price},#{remark},#{attention},#{img})
+</insert>
+
+    <insert id="addSetmealAndTravelGroup" parameterType="map">
+        insert into t_setmeal_travelgroup(setmeal_id,travelgroup_id) values (#{setmealId},#{travelgroupId})
+    </insert>
+
+    <select id="findPage" parameterType="string" resultType="setmeal">
+        select * from t_travelitem
+        <where>
+            <if test="value!=null and value.length>0">
+                code=#{value} or name like concat("%",#{value},"%") or helpCode=#{value}
+            </if>
+        </where>
+    </select>
+
+    <select id="getSetmeal" resultType="setmeal">
+        select * from t_setmeal
+    </select>
+
+
+
+<!--    id就是下面resultMap指定的名称，type是指查询结果的映射是什么类型，这里是套餐setmeal这个bean对象来映射，所以属性名称一定要和实体类中属性一致-->
+   <resultMap id="SetmealResultMap" type="setmeal">
+    <!--这个id标签用来指明表和实体对象是通过哪个字段来查的，property是实体对象的属性，column是表的属性-->
+        <id property="id" column="id"></id>
+    <!--result标签用来指明查询的结果分别封装到setmeal对象的哪些属性中-->
+       <result property="name" column="name"></result>
+       <result property="code" column="code"></result>
+       <result property="helpCode" column="helpCode"></result>
+       <result property="sex" column="sex"></result>
+       <result property="age" column="age"></result>
+       <result property="price" column="price"></result>
+       <result property="remark" column="remark"></result>
+       <result property="attention" column="attention"></result>
+       <result property="img" column="img"></result>
+    <!--通过语句select * from t_setmeal where id=#{id}仅仅只负责查出套餐的属性，而Setmeal对象中travelGroups属性要借助对应的跟团游接口来查出来，
+    用collection标签标识,指定哪个dao查询接口的哪个方法用select标识,这里在接口中指定一个方法findTravelGroupById，然后去
+    TravelGroupDao接口写这个方法，根据套餐id查询跟团游信息的方法-->
+       <collection property="travelGroups" column="id"
+                   select="com.atguigu.dao.TravelGroupDao.findTravelGroupById"></collection>
+
+   </resultMap>
+
+<!-- 因为根据套餐id查询出的详情结果不仅包含套餐信息，还有所包含的跟团游信息，以及跟团游包含的自由行信息，所以
+封装的结果不能用setmeal，这种多个表数据或者说实体对象相互嵌套的结果采用resultMap作为返回类型接收，名称习惯采用
+类名称+ResultMap ，再定义一个resultMap的查询  -->
+    <select id="findById" parameterType="integer" resultMap="SetmealResultMap">
+        select * from t_setmeal where id=#{id}
+    </select>
+
+
+
+    <select id="getSetmealById" parameterType="integer" resultType="setmeal">
+        select * from t_setmeal where id=#{id}
+    </select>
+
+    <select id="getSetmealReport" resultType="map">
+        SELECT s.name name,COUNT(s.id) value
+        FROM t_setmeal s,t_order o WHERE s.id = o.setmeal_id
+        GROUP BY s.name
+    </select>
+
+</mapper>
+
